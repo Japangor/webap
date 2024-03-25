@@ -15,7 +15,7 @@ export function MainMenu () {
         <button>Docs</button>
         
         <div className={styles.userIcon}>
-          <Image src="https://github.com/datsfilipe.png" alt="Filipe Lima" width="28" height="28"/>
+          <Image src="https://github.com/japangor.png" alt="JAPAN GOR" width="28" height="28"/>
         </div>
       </div>
     </div>

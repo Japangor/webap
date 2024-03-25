@@ -9,16 +9,9 @@ function Footer () {
       <div className={styles.categoryMenu}>
         <ul className={styles.category}>
           <li className={styles.categoryTitle}>
-            Frameworks
           </li>
 
-          <li className={styles.categoryItem}>Next.js</li>
-          <li className={styles.categoryItem}>Create React App</li>
-          <li className={styles.categoryItem}>Gatsby</li>
-          <li className={styles.categoryItem}>Nuxt.js</li>
-          <li className={styles.categoryItem}>Vue</li>
-          <li className={styles.categoryItem}>Angular</li>
-          <li className={styles.categoryItem}>More Frameworks</li>
+      
         </ul>
 
         <ul className={styles.category}>
@@ -26,15 +19,7 @@ function Footer () {
             Resources
           </li>
 
-          <li className={styles.categoryItem}>Documentation</li>
-          <li className={styles.categoryItem}>Experts</li>
-          <li className={styles.categoryItem}>Customers</li>
-          <li className={styles.categoryItem}>Guides</li>
-          <li className={styles.categoryItem}>Support</li>
-          <li className={styles.categoryItem}>API Reference</li>
-          <li className={styles.categoryItem}>OSS</li>
-          <li className={styles.categoryItem}>Command-Line</li>
-          <li className={styles.categoryItem}>Integrations</li>
+    
         </ul>
 
         <ul className={styles.category}>
@@ -82,7 +67,7 @@ function Footer () {
         </svg>
 
         <div className={styles.bottomInfoPanel}>
-          <p className={styles.subText}>Copyright © 2021 Vercel Inc. All rights reserved.</p>
+          <p className={styles.subText}>Copyright © 2024 JAPAN GOR Inc. All rights reserved.</p>
 
           <div className={styles.redirectGroupButtons}>
             <FaGithub size="20" />
