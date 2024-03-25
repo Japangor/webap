@@ -1,0 +1,77 @@
+{
+  "variables": {
+    "project_id": "csye-417822",
+    "zone": "us-central1-a",
+    "image_name": "custom-centos-stream8-{{timestamp}}",
+    "repo_url": "https://github.com/Japangor/webap.git",
+    "repo_dir": "webap"
+  },
+  "builders": [
+    {
+      "type": "googlecompute",
+      "project_id": "{{user `project_id`}}",
+      "source_image_family": "centos-stream-8",
+      "source_image_project_id": "centos-cloud",
+      "zone": "{{user `zone`}}",
+      "ssh_username": "centos",
+      "machine_type": "e2-standard-2",
+      "disk_size": 20,
+      "disk_type": "pd-standard",
+      "network": "my-vpc",
+      "subnetwork": "webapp-subnet",
+      "tags": [
+        "packer",
+        "http-server",
+        "https-server"
+      ],
+      "account_file": "key.json"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": [
+        "sudo yum update -y",
+        "sudo yum install -y httpd git",
+        "sudo systemctl start httpd",
+        "sudo systemctl enable httpd",
+        "git clone {{user `repo_url`}} /var/www/{{user `repo_dir`}}",
+        "curl -sL https://rpm.nodesource.com/setup_18.x | sudo bash -",
+        "sudo yum install -y nodejs",
+        "echo 'Node.js and npm installation completed' >/tmp/nodejs_installation.txt",
+        "cd /var/www/{{user `repo_dir`}}",
+        "npm install",
+        "echo 'NEXT_PUBLIC_SITE_URL=https://sarkarilinks.com' > .env",
+        "echo 'DB_NAME=${db_name}' >> .env",
+        "echo 'DB_USER=${db_user}' >> .env",
+        "echo 'DB_PASSWORD=${db_password}' >> .env",
+        "echo 'DB_HOST=${db_host}' >> .env",
+        "npm run build",
+        "sudo npm install -g pm2",
+        "pm2 start npm --name '{{user `repo_dir`}}' -- start",
+        "sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u centos --hp /home/centos",
+        "pm2 save",
+        "curl -sSO https://dl.google.com/cloudagents/add-google-cloud-ops-agent-repo.sh",
+        "sudo bash add-google-cloud-ops-agent-repo.sh --also-install",
+        "sudo systemctl enable google-cloud-ops-agent",
+        "echo 'Ops Agent installation and startup complete' >/tmp/ops_agent_setup.txt"
+      ],
+      "environment_vars": [
+        "db_name={{user `db_name`}}",
+        "db_user={{user `db_user`}}",
+        "db_password={{user `db_password`}}",
+        "db_host={{user `db_host`}}"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "sudo firewall-cmd --zone=public --add-port=22/tcp --permanent",
+        "sudo firewall-cmd --zone=public --add-port=80/tcp --permanent",
+        "sudo firewall-cmd --zone=public --add-port=3000/tcp --permanent",
+        "sudo firewall-cmd --reload",
+        "echo 'Firewall rules configured for SSH, HTTP, and custom application' >/tmp/firewall_rules_configured.txt"
+      ]
+    }
+  ]
+}

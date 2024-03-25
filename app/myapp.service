@@ -1,0 +1,15 @@
+[Unit]
+Description=Node.js Web Application
+After=network.target
+
+[Service]
+Type=simple
+User=centos
+WorkingDirectory=/home/centos/app/webapp
+ExecStart=/usr/bin/node app.js
+Restart=always
+RestartSec=10
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
