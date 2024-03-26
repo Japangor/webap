@@ -9,11 +9,11 @@ async function initialize() {
   const { host, port, user, password, database } = config.database;
 
   // connect to db
-  const sequelize = new Sequelize(database, user, password, {
+  const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {
     dialect: 'mysql',
-    host: host,
-    port: port,
+    host: `/cloudsql/${process.env.CLOUD_SQL_CONNECTION_NAME}`,
   });
+  
 
   // init models and add them to the exported db object
   db.User = require('../users/user.model')(sequelize);
