@@ -101,12 +101,12 @@ resource "google_compute_instance" "csye_instance" {
 
   tags = ["http-server", "https-server", "csye-group"]
 
-  metadata = {
-    db_name     = google_sql_database.database.name
-    db_user     = google_sql_user.user.name
-    db_password = random_password.db_password.result
-    db_host     = google_sql_database_instance.instance.private_ip_address
-  }
+ metadata = {
+  db_name     = google_sql_database.database.name
+  db_user     = google_sql_user.user.name
+  db_password = google_sql_user.user.password
+  db_host     = google_sql_database_instance.instance.private_ip_address
+}
   metadata_startup_script = <<-EOF
   
     #!/bin/bash
@@ -141,7 +141,106 @@ resource "google_compute_instance" "csye_instance" {
 
 
 
+# ... (rest of the Terraform configuration remains the same)
 
+# Pub/Sub topic for user registration
+resource "google_pubsub_topic" "user_registered" {
+  name = "user-registered"
+}
+
+# Pub/Sub subscription for user registration
+resource "google_pubsub_subscription" "user_registered_subscription" {
+  name  = "user-registered-subscription"
+  topic = google_pubsub_topic.user_registered.name
+
+  ack_deadline_seconds = 20
+}
+
+# Cloud Storage bucket for Cloud Function source code
+resource "google_storage_bucket" "function_bucket" {
+  name     = "japangor_bucket_serverless"
+  location = "US"
+}
+
+# Archive the Cloud Function source code
+data "archive_file" "function_source" {
+  type        = "zip"
+  source_dir  = "./serverless"
+  output_path = "./serverless.zip"
+}
+
+# Upload the Cloud Function source code to the bucket
+resource "google_storage_bucket_object" "function_archive" {
+  name   = "serverless.zip"
+  bucket = google_storage_bucket.function_bucket.name
+  source = data.archive_file.function_source.output_path
+}
+
+# Cloud Function for sending verification email
+resource "google_cloudfunctions_function" "send_verification_email" {
+  name        = "send-verification-email"
+  description = "Sends verification email to newly registered users"
+  runtime     = "nodejs14"
+
+  event_trigger {
+    event_type = "google.pubsub.topic.publish"
+    resource   = google_pubsub_topic.user_registered.name
+  }
+
+  source_archive_bucket = google_storage_bucket.function_bucket.name
+  source_archive_object = google_storage_bucket_object.function_archive.name
+
+  entry_point = "sendVerificationEmail"
+
+  environment_variables = {
+    MAILCHIMP_API_KEY = var.mailchimp_api_key
+    FROM_EMAIL        = var.from_email
+    DB_HOST           = google_sql_database_instance.instance.private_ip_address
+    DB_NAME           = google_sql_database.database.name
+    DB_USER           = google_sql_user.user.name
+    DB_PASSWORD       = google_sql_user.user.password
+  }
+}
+
+# IAM policy for Cloud Function to access Pub/Sub
+resource "google_cloudfunctions_function_iam_member" "pubsub_invoker" {
+  project        = google_cloudfunctions_function.send_verification_email.project
+  region         = google_cloudfunctions_function.send_verification_email.region
+  cloud_function = google_cloudfunctions_function.send_verification_email.name
+
+  role   = "roles/cloudfunctions.invoker"
+  member = "serviceAccount:${google_service_account.pubsub_service_account.email}"
+}
+
+# IAM policy for Pub/Sub subscription
+resource "google_pubsub_subscription_iam_member" "pubsub_subscriber" {
+  subscription = google_pubsub_subscription.user_registered_subscription.name
+  role         = "roles/pubsub.subscriber"
+  member       = "serviceAccount:${google_service_account.pubsub_service_account.email}"
+}
+
+# IAM policy for Pub/Sub topic
+resource "google_pubsub_topic_iam_member" "pubsub_publisher" {
+  topic  = google_pubsub_topic.user_registered.name
+  role   = "roles/pubsub.publisher"
+  member = "serviceAccount:${google_service_account.pubsub_service_account.email}"
+}
+
+# Service account for Pub/Sub
+resource "google_service_account" "pubsub_service_account" {
+  account_id   = "pubsub-service-account"
+  display_name = "Pub/Sub Service Account"
+}
+
+# Grant service account token creator role to the Pub/Sub service account
+resource "google_project_iam_member" "pubsub_token_creator" {
+  project = var.project_id
+  role    = "roles/iam.serviceAccountTokenCreator"
+  member  = "serviceAccount:service-${data.google_project.current_project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+}
+
+# Retrieve the current project information
+data "google_project" "current_project" {}
 resource "google_dns_record_set" "default" {
   name         = "sarkarilinks.com."
   managed_zone = "sarkar"  # Use the existing DNS zone name
@@ -205,3 +304,11 @@ resource "google_project_iam_binding" "monitoring_metric_writer" {
     "serviceAccount:${google_service_account.vm_service_account.email}",
   ]
 }
+  variable "from_email" {
+      type    = string
+      default = "japangor@gmail.com"
+    }
+      variable "mailchimp_api_key" {
+      type    = string
+      default = "bb0b883f788dc7a0d70f4b72d4462081-us9"
+    }

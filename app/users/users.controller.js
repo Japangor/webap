@@ -14,6 +14,7 @@ router.get('/current', authorize(), getCurrent);
 router.get('/:id', authorize(), getById);
 router.put('/:id', authorize(), updateSchema, update);
 router.delete('/:id', authorize(), _delete);
+router.get('/verify-email', verifyEmailSchema, verifyEmail);
 
 module.exports = router;
 
@@ -42,16 +43,17 @@ function registerSchema(req, res, next) {
     firstName: Joi.string().required(),
     lastName: Joi.string().required(),
     username: Joi.string().required(),
-    password: Joi.string().min(6).required()
+    password: Joi.string().min(6).required(),
+    email: Joi.string().email().required()
   });
   validateRequest(req, next, schema);
 }
 
 function register(req, res, next) {
   userService.create(req.body)
-    .then(() => {
+    .then(user => {
       logger.info('User registered successfully');
-      res.json({ message: 'Registration successful' });
+      res.json({ message: 'Registration successful', user });
     })
     .catch(err => {
       logger.error('Error registering user:', err);
@@ -118,6 +120,25 @@ function _delete(req, res, next) {
     })
     .catch(err => {
       logger.error('Error deleting user:', err);
+      next(err);
+    });
+}
+
+function verifyEmailSchema(req, res, next) {
+  const schema = Joi.object({
+    token: Joi.string().required()
+  });
+  validateRequest(req, next, schema);
+}
+
+function verifyEmail(req, res, next) {
+  userService.verifyEmail(req.query.token)
+    .then(() => {
+      logger.info('Email verified successfully');
+      res.json({ message: 'Email verified successfully' });
+    })
+    .catch(err => {
+      logger.error('Error verifying email:', err);
       next(err);
     });
 }

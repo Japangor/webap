@@ -28,6 +28,7 @@
     }
   ],
   "provisioners": [
+    
     {
       "type": "shell",
       "inline": [
@@ -56,12 +57,7 @@
         "sudo systemctl enable google-cloud-ops-agent",
         "echo 'Ops Agent installation and startup complete' >/tmp/ops_agent_setup.txt"
       ],
-      "environment_vars": [
-        "db_name={{user `db_name`}}",
-        "db_user={{user `db_user`}}",
-        "db_password={{user `db_password`}}",
-        "db_host={{user `db_host`}}"
-      ]
+  
     },
     {
       "type": "shell",

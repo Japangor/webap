@@ -1,12 +1,12 @@
 ﻿{
     "database": {
-        "host": "0.0.0.0",
-        "port": 1234,
-              "user": "csye-user",
-      "password": "japangor",
-      "database": "csye-database"
+        "host": "localhost",
+        "port": 3306,
+              "user": "root",
+      "password": "",
+      "database": "webapp"
     },
-    "mailchimpApiKey": "33b8dbf74968e188debd9ddc4f0c2e6d-us9",
+    "mailchimpApiKey": "bb0b883f788dc7a0d70f4b72d4462081-us9",
     "fromEmail": "japangor@gmail.com",
     "secret": "THIS IS USED TO SIGN AND VERIFY JWT TOKENS, REPLACE IT WITH YOUR OWN SECRET, IT CAN BE ANY STRING"
   }
