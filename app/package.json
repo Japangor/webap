@@ -13,6 +13,7 @@
     },
     "dependencies": {
         "@google-cloud/logging-winston": "^6.0.0",
+        "@google-cloud/pubsub": "^4.3.3",
         "@mailchimp/mailchimp_transactional": "^1.0.59",
         "@sendgrid/mail": "^8.1.1",
         "bcryptjs": "^2.4.3",

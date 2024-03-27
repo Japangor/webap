@@ -28,7 +28,6 @@
     }
   ],
   "provisioners": [
-    
     {
       "type": "shell",
       "inline": [
@@ -42,11 +41,6 @@
         "echo 'Node.js and npm installation completed' >/tmp/nodejs_installation.txt",
         "cd /var/www/{{user `repo_dir`}}",
         "npm install",
-        "echo 'NEXT_PUBLIC_SITE_URL=https://sarkarilinks.com' > .env",
-        "echo 'DB_NAME=${db_name}' >> .env",
-        "echo 'DB_USER=${db_user}' >> .env",
-        "echo 'DB_PASSWORD=${db_password}' >> .env",
-        "echo 'DB_HOST=${db_host}' >> .env",
         "npm run build",
         "sudo npm install -g pm2",
         "pm2 start npm --name '{{user `repo_dir`}}' -- start",
@@ -57,7 +51,9 @@
         "sudo systemctl enable google-cloud-ops-agent",
         "echo 'Ops Agent installation and startup complete' >/tmp/ops_agent_setup.txt"
       ],
-  
+      "environment_vars": [
+        "NEXT_PUBLIC_SITE_URL=https://sarkarilinks.com"
+      ]
     },
     {
       "type": "shell",
